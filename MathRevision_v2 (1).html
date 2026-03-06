@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MathRévision</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --blue:#2563eb; --dark:#0f172a; --cyan:#06b6d4; --violet:#a78bfa; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--dark); color:white; overflow-x:hidden; }
+
+    /* ---- shared bg ---- */
+    .bg { position:absolute; inset:0; z-index:0; background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%); }
+    .bg::before { content:''; position:absolute; inset:0; background-image: radial-gradient(circle at 20% 30%,rgba(37,99,235,.22) 0%,transparent 50%), radial-gradient(circle at 80% 70%,rgba(167,139,250,.18) 0%,transparent 50%); }
+
+    /* ---- floating symbols ---- */
+    .mf { position:absolute; z-index:1; pointer-events:none; font-family:'Playfair Display',serif; color:rgba(255,255,255,.04); font-style:italic; user-select:none; }
+    .mf:nth-child(1){top:5%;left:2%;font-size:180px}
+    .mf:nth-child(2){top:15%;right:5%;font-size:120px}
+    .mf:nth-child(3){bottom:20%;left:8%;font-size:100px}
+    .mf:nth-child(4){bottom:5%;right:3%;font-size:160px}
+    .mf:nth-child(5){top:45%;left:45%;font-size:90px;opacity:.03}
+
+    /* ===== INTRO ===== */
+    #introPage { min-height:100vh; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+    .intro-content { position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:40px 20px; text-align:center; }
+    .badge { display:inline-block; background:rgba(37,99,235,.2); border:1px solid rgba(37,99,235,.4); color:#93c5fd; padding:6px 18px; border-radius:999px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:28px; animation:fadeDown .8s ease both; }
+    .intro-title { font-family:'Playfair Display',serif; font-size:clamp(42px,8vw,88px); line-height:1.05; margin-bottom:12px; animation:fadeDown .9s .1s ease both; }
+    .intro-title span { color:var(--cyan); font-style:italic; }
+    .intro-sub { font-size:clamp(15px,2.5vw,20px); color:#94a3b8; max-width:600px; line-height:1.6; margin-bottom:50px; animation:fadeDown 1s .2s ease both; }
+    .avatar-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:50px; animation:fadeDown 1.1s .3s ease both; }
+    .avatar-ring { width:100px; height:100px; border-radius:50%; padding:3px; background:linear-gradient(135deg,var(--cyan),var(--violet)); }
+    .avatar-inner { width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg,#1e3a8a,#0f172a); display:flex; align-items:center; justify-content:center; font-size:38px; }
+    .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; max-width:860px; width:100%; margin-bottom:52px; animation:fadeUp 1.2s .4s ease both; }
+    .feat-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:22px 20px; text-align:left; backdrop-filter:blur(8px); transition:border-color .3s,transform .3s; }
+    .feat-card:hover { border-color:rgba(37,99,235,.5); transform:translateY(-4px); }
+    .feat-card .ic { font-size:26px; margin-bottom:12px; }
+    .feat-card h3 { font-size:15px; font-weight:600; margin-bottom:8px; }
+    .feat-card p { font-size:13px; color:#64748b; line-height:1.5; }
+    .btn-row { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; animation:fadeUp 1.3s .5s ease both; }
+    .btn { display:inline-flex; align-items:center; gap:10px; background:var(--blue); color:white; padding:16px 40px; border:none; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; transition:transform .2s,box-shadow .3s; font-family:'DM Sans',sans-serif; }
+    .btn:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(37,99,235,.5); }
+    .btn.ghost { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); }
+
+    /* ===== AUTH ===== */
+    #authPage { display:none; min-height:100vh; position:relative; overflow:hidden; align-items:center; justify-content:center; }
+    .auth-wrap { position:relative; z-index:2; display:flex; width:100%; max-width:900px; margin:20px; border-radius:24px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.08); min-height:560px; }
+    .auth-left { flex:1; background:linear-gradient(135deg,#1e3a8a,#0c1a4a); padding:50px 40px; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden; }
+    .auth-left::before { content:'∑'; position:absolute; right:-20px; bottom:20px; font-family:'Playfair Display',serif; font-size:200px; color:rgba(255,255,255,.04); pointer-events:none; }
+    .auth-logo { font-family:'Playfair Display',serif; font-size:28px; color:var(--cyan); font-style:italic; }
+    .auth-left-content h2 { font-family:'Playfair Display',serif; font-size:32px; line-height:1.2; margin-bottom:16px; }
+    .auth-left-content p { color:#94a3b8; font-size:14px; line-height:1.7; }
+    .auth-feats { list-style:none; margin-top:28px; }
+    .auth-feats li { display:flex; align-items:center; gap:10px; color:#cbd5e1; font-size:14px; margin-bottom:12px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--cyan); flex-shrink:0; }
+    .auth-right { flex:1; background:#0f172a; padding:50px 44px; display:flex; flex-direction:column; justify-content:center; }
+    .tabs { display:flex; background:rgba(255,255,255,.05); border-radius:10px; padding:4px; margin-bottom:34px; }
+    .tab { flex:1; padding:9px; border:none; background:transparent; color:#64748b; font-size:14px; font-weight:600; border-radius:8px; cursor:pointer; transition:all .25s; font-family:'DM Sans',sans-serif; }
+    .tab.active { background:var(--blue); color:white; box-shadow:0 4px 12px rgba(37,99,235,.4); }
+    .aform { display:none; }
+    .aform.active { display:block; }
+    .aform h3 { font-family:'Playfair Display',serif; font-size:24px; margin-bottom:6px; }
+    .fdesc { color:#64748b; font-size:13px; margin-bottom:26px; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:12px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.08em; margin-bottom:7px; }
+    .field input,.field select { width:100%; padding:12px 14px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:10px; color:white; font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s,background .2s; }
+    .field input::placeholder { color:#475569; }
+    .field input:focus,.field select:focus { border-color:var(--blue); background:rgba(37,99,235,.06); }
+    .field select option { background:#1e293b; }
+    .field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .asub { width:100%; padding:13px; background:var(--blue); color:white; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; margin-top:6px; transition:transform .2s,box-shadow .3s,background .2s; font-family:'DM Sans',sans-serif; }
+    .asub:hover { background:#1d4ed8; transform:translateY(-2px); box-shadow:0 8px 20px rgba(37,99,235,.4); }
+    .asub.ghost { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); }
+    .amsg { font-size:13px; text-align:center; margin-top:12px; min-height:18px; padding:0 4px; }
+    .amsg.err { color:#f87171; }
+    .amsg.ok { color:#34d399; }
+    .divider { display:flex; align-items:center; gap:12px; margin:18px 0; }
+    .divider hr { flex:1; border:none; border-top:1px solid rgba(255,255,255,.08); }
+    .divider span { color:#475569; font-size:12px; }
+    @media(max-width:640px){ .auth-left{display:none} .auth-right{padding:36px 28px} .field-row{grid-template-columns:1fr} }
+
+    /* ===== SITE ===== */
+    #site { display:none; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:18px 40px; background:rgba(15,23,42,.95); border-bottom:1px solid rgba(255,255,255,.08); backdrop-filter:blur(12px); position:sticky; top:0; z-index:100; flex-wrap:wrap; gap:12px; }
+    .logo { font-family:'Playfair Display',serif; font-size:24px; color:var(--cyan); font-style:italic; }
+    nav { display:flex; gap:28px; }
+    nav a { text-decoration:none; color:#94a3b8; font-size:14px; font-weight:500; transition:color .2s; }
+    nav a:hover { color:white; }
+    .uinfo { display:flex; align-items:center; gap:10px; }
+    .uavatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--blue)); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; }
+    .uname { font-size:13px; color:#94a3b8; }
+    .logoutbtn { background:none; border:1px solid rgba(255,255,255,.1); color:#64748b; padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer; transition:all .2s; font-family:'DM Sans',sans-serif; }
+    .logoutbtn:hover { border-color:rgba(255,255,255,.3); color:white; }
+
+    main { padding:60px 40px; min-height:calc(100vh - 65px); }
+    #mainTitle { text-align:center; font-family:'Playfair Display',serif; font-size:clamp(28px,5vw,48px); margin-bottom:50px; }
+    #mainTitle span { color:var(--cyan); font-style:italic; }
+
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:28px; max-width:1100px; margin:0 auto; }
+    .card { border-radius:20px; color:white; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.4); cursor:pointer; transition:transform .3s,box-shadow .3s; }
+    .card:hover { transform:translateY(-8px); box-shadow:0 20px 50px rgba(0,0,0,.5); }
+    .card-img { width:100%; height:180px; object-fit:cover; display:block; filter:brightness(.75); }
+    .card-img-css { width:100%; height:180px; display:block; }
+    .seconde  .card-img-css { background:linear-gradient(135deg, #0ea5e9, #1e40af, #0f172a); }
+    .premiere .card-img-css { background:linear-gradient(135deg, #8b5cf6, #6d28d9, #1e1b4b); }
+    .terminale .card-img-css { background:linear-gradient(135deg, #334155, #1e293b, #020617); }
+    .card-img-inner {
+      width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+      font-size:64px; opacity:0.35;
+      font-family:'Playfair Display',serif; font-style:italic; color:white;
+    }
+    .card-body { padding:22px 24px 26px; }
+    .card-icon { font-size:30px; margin-bottom:10px; }
+    .card h2 { font-family:'Playfair Display',serif; font-size:26px; margin-bottom:6px; }
+    .card p { opacity:.75; font-size:14px; }
+    .seconde  .card-body { background:linear-gradient(180deg,rgba(6,182,212,.15),rgba(30,58,138,.9)); }
+    .premiere .card-body { background:linear-gradient(180deg,rgba(167,139,250,.15),rgba(71,85,105,.9)); }
+    .terminale .card-body{ background:linear-gradient(180deg,rgba(71,85,105,.15),rgba(2,6,23,.95)); }
+
+    .chapitres { max-width:900px; margin:0 auto; display:none; }
+    .chapitres > h2 { font-family:'Playfair Display',serif; font-size:32px; margin-bottom:24px; }
+    .back { display:inline-flex; align-items:center; gap:8px; margin-bottom:28px; cursor:pointer; color:var(--cyan); font-size:14px; font-weight:500; transition:gap .2s; }
+    .back:hover { gap:12px; }
+
+    /* accordion chapitre */
+    .ch { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; margin-bottom:10px; overflow:hidden; transition:border-color .2s; }
+    .ch.open { border-color:rgba(6,182,212,.45); }
+    .ch-head { padding:18px 24px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:background .2s; }
+    .ch-head:hover { background:rgba(37,99,235,.06); }
+    .ch-left { display:flex; align-items:center; gap:14px; }
+    .ch-ico { font-size:22px; }
+    .ch-name { font-weight:500; font-size:15px; }
+    .ch-arrow { color:var(--cyan); font-size:18px; transition:transform .3s; }
+    .ch.open .ch-arrow { transform:rotate(180deg); }
+
+    /* video panel */
+    .ch-videos { display:none; padding:4px 20px 20px; }
+    .ch.open .ch-videos { display:block; }
+    .vgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+    .vcard { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:12px; overflow:hidden; cursor:pointer; transition:transform .2s,border-color .2s; text-decoration:none; display:block; }
+    .vcard:hover { transform:translateY(-4px); border-color:var(--cyan); }
+    .vthumb { position:relative; padding-bottom:56.25%; background:#111; }
+    .vthumb img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .vplay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.3); opacity:0; transition:opacity .2s; }
+    .vcard:hover .vplay { opacity:1; }
+    .vpicon { width:46px; height:46px; border-radius:50%; background:rgba(220,30,30,.9); display:flex; align-items:center; justify-content:center; font-size:16px; padding-left:3px; }
+    .vlabel { padding:10px 12px; font-size:13px; color:#94a3b8; line-height:1.4; }
+
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- ===== INTRO ===== -->
+<div id="introPage">
+  <div class="bg"></div>
+  <div class="mf">∫</div><div class="mf">∑</div><div class="mf">π</div><div class="mf">∞</div><div class="mf">√</div>
+  <div class="intro-content">
+    <div class="badge">✦ Plateforme de révision mathématiques</div>
+    <h1 class="intro-title">Bienvenue sur<br><span>MathRévision</span></h1>
+    <p class="intro-sub">Ton espace personnel pour réviser les maths du lycée — de la Seconde à la Terminale. Des ressources claires, des vidéos intégrées, à ton rythme.</p>
+    <div class="avatar-wrap">
+      <div class="avatar-ring"><div class="avatar-inner">🎓</div></div>
+      <p style="font-size:14px;color:#64748b;">Créé pour les élèves du lycée français</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card"><div class="ic">📐</div><h3>3 niveaux couverts</h3><p>Seconde, Première et Terminale — tous les chapitres.</p></div>
+      <div class="feat-card"><div class="ic">🎬</div><h3>Vidéos intégrées</h3><p>Miniatures cliquables avec accès direct aux vidéos YouTube.</p></div>
+      <div class="feat-card"><div class="ic">🚀</div><h3>Simple & rapide</h3><p>Interface épurée, accès direct sans distraction.</p></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="showAuth('login')">→ Se connecter</button>
+      <button class="btn ghost" onclick="showAuth('signup')">✦ S'inscrire gratuitement</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUTH ===== -->
+<div id="authPage">
+  <div class="bg"></div>
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div class="auth-logo">MathRévision</div>
+      <div class="auth-left-content">
+        <h2>Révisez<br>intelligemment.</h2>
+        <p>Accédez à tous les chapitres du programme lycée, avec des vidéos intégrées pour chaque notion.</p>
+        <ul class="auth-feats">
+          <li><span class="dot"></span>Seconde, Première &amp; Terminale</li>
+          <li><span class="dot"></span>Vidéos YouTube intégrées</li>
+          <li><span class="dot"></span>Gratuit et sans pub</li>
+          <li><span class="dot"></span>Accès immédiat</li>
+        </ul>
+      </div>
+      <div style="font-size:12px;color:#334155;">© 2025 MathRévision</div>
+    </div>
+    <div class="auth-right">
+      <div class="tabs">
+        <button class="tab active" id="tabLogin" onclick="switchTab('login')">Connexion</button>
+        <button class="tab" id="tabSignup" onclick="switchTab('signup')">Inscription</button>
+      </div>
+      <!-- LOGIN -->
+      <div class="aform active" id="formLogin">
+        <h3>Bon retour ! 👋</h3>
+        <p class="fdesc">Connecte-toi pour accéder à tes révisions.</p>
+        <div class="field"><label>E-mail</label><input type="email" id="lEmail" placeholder="eleve@exemple.fr"/></div>
+        <div class="field"><label>Mot de passe</label><input type="password" id="lPass" placeholder="••••••••"/></div>
+        <button class="asub" onclick="doLogin()">Se connecter →</button>
+        <p class="amsg" id="lMsg"></p>
+        <div class="divider"><hr><span>Pas encore inscrit ?</span><hr></div>
+        <button class="asub ghost" onclick="switchTab('signup')">Créer un compte</button>
+      </div>
+      <!-- SIGNUP -->
+      <div class="aform" id="formSignup">
+        <h3>Crée ton compte 🎓</h3>
+        <p class="fdesc">Inscription gratuite et immédiate.</p>
+        <div class="field-row">
+          <div class="field"><label>Prénom</label><input type="text" id="sPrenom" placeholder="Lucas"/></div>
+          <div class="field"><label>Nom</label><input type="text" id="sNom" placeholder="Martin"/></div>
+        </div>
+        <div class="field"><label>E-mail</label><input type="email" id="sEmail" placeholder="eleve@exemple.fr"/></div>
+        <div class="field">
+          <label>Niveau</label>
+          <select id="sNiveau">
+            <option value="">-- Choisir --</option>
+            <option value="Seconde">Seconde</option>
+            <option value="Première">Première</option>
+            <option value="Terminale">Terminale</option>
+          </select>
+        </div>
+        <div class="field"><label>Mot de passe</label><input type="password" id="sPass" placeholder="Minimum 6 caractères"/></div>
+        <button class="asub" onclick="doSignup()">Créer mon compte →</button>
+        <p class="amsg" id="sMsg"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SITE ===== -->
+<div id="site">
+  <header>
+    <div class="logo">MathRévision</div>
+    <nav>
+      <a href="#" onclick="goBack();return false;">Accueil</a>
+      <a href="#" onclick="showLevel('seconde');return false;">Seconde</a>
+      <a href="#" onclick="showLevel('premiere');return false;">Première</a>
+      <a href="#" onclick="showLevel('terminale');return false;">Terminale</a>
+    </nav>
+    <div class="uinfo">
+      <div class="uavatar" id="uAvatar">?</div>
+      <span class="uname" id="uName">—</span>
+      <button class="logoutbtn" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <main>
+    <h2 id="mainTitle">Choisissez votre <span>niveau</span></h2>
+
+    <!-- LEVEL CARDS -->
+    <section class="cards" id="cards">
+      <div class="card seconde" onclick="showLevel('seconde')">
+        <div class="card-img-css"><div class="card-img-inner">∫</div></div>
+        <div class="card-body"><div class="card-icon">📗</div><h2>Seconde</h2><p>Fonctions, géométrie, statistiques</p></div>
+      </div>
+      <div class="card premiere" onclick="showLevel('premiere')">
+        <div class="card-img-css"><div class="card-img-inner">∑</div></div>
+        <div class="card-body"><div class="card-icon">📘</div><h2>Première</h2><p>Dérivation, suites, trigonométrie</p></div>
+      </div>
+      <div class="card terminale" onclick="showLevel('terminale')">
+        <div class="card-img-css"><div class="card-img-inner">π</div></div>
+        <div class="card-body"><div class="card-icon">📙</div><h2>Terminale</h2><p>Limites, intégration, probabilités</p></div>
+      </div>
+    </section>
+
+    <!-- ========== SECONDE ========== -->
+    <section class="chapitres" id="seconde">
+      <div class="back" onclick="goBack()">← Retour aux niveaux</div>
+      <h2>Chapitres de Seconde</h2>
+
+      <div class="ch" id="s1">
+        <div class="ch-head" onclick="tog('s1')"><div class="ch-left"><span class="ch-ico">📈</span><span class="ch-name">Fonctions</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=i8aYSIidNlk" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/i8aYSIidNlk/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Variations des fonctions — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=n5_pRx4ozIg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/n5_pRx4ozIg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Fonctions affines — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=2pcSNg0rF2w" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/2pcSNg0rF2w/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices — équations</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="s2">
+        <div class="ch-head" onclick="tog('s2')"><div class="ch-left"><span class="ch-ico">↗️</span><span class="ch-name">Vecteurs</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=aSSDBNn_rRI" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/aSSDBNn_rRI/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Les vecteurs — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=fq2sXpbdJQg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/fq2sXpbdJQg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Coordonnées de vecteurs</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=zZ9SbX8mC2o" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/zZ9SbX8mC2o/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices — vecteurs</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="s3">
+        <div class="ch-head" onclick="tog('s3')"><div class="ch-left"><span class="ch-ico">📊</span><span class="ch-name">Statistiques</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=DUbAkwCX8O8" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/DUbAkwCX8O8/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Statistiques — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=-d3fE8d0YOc" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/-d3fE8d0YOc/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Lire et interpréter une courbe</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=p93oVqzvog8" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/p93oVqzvog8/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices — statistiques</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="s4">
+        <div class="ch-head" onclick="tog('s4')"><div class="ch-left"><span class="ch-ico">🔢</span><span class="ch-name">Équations &amp; Inéquations</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=DfgUYXB5_jg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/DfgUYXB5_jg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Équations — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=zZ9SbX8mC2o" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/zZ9SbX8mC2o/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Inéquations</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=p93oVqzvog8" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/p93oVqzvog8/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices — équations</div></a>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ========== PREMIERE ========== -->
+    <section class="chapitres" id="premiere">
+      <div class="back" onclick="goBack()">← Retour aux niveaux</div>
+      <h2>Chapitres de Première</h2>
+
+      <div class="ch" id="p1">
+        <div class="ch-head" onclick="tog('p1')"><div class="ch-left"><span class="ch-ico">📉</span><span class="ch-name">Dérivation</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=9Mann4wOGJA" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/9Mann4wOGJA/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Fonctions usuelles — dérivées</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=jOuC7aq3YkM" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/jOuC7aq3YkM/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Opérations sur les dérivées</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=0jhxK55jONs" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/0jhxK55jONs/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Tangente à une courbe</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="p2">
+        <div class="ch-head" onclick="tog('p2')"><div class="ch-left"><span class="ch-ico">🔁</span><span class="ch-name">Suites</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=05UHsy9G4M4" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/05UHsy9G4M4/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Suites — cours complet</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=pHq6oClOylU" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/pHq6oClOylU/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Reconnaitre arith. et géom.</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=A8lSieLmhbQ" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/A8lSieLmhbQ/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Déterminer une expression</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="p3">
+        <div class="ch-head" onclick="tog('p3')"><div class="ch-left"><span class="ch-ico">🔵</span><span class="ch-name">Trigonométrie</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=wJjb3CSS3cg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/wJjb3CSS3cg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Trigonométrie — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=DfgUYXB5_jg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/DfgUYXB5_jg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">sin, cos, tan</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=iEuoMgBblz4" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/iEuoMgBblz4/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices — cercle trigo</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="p4">
+        <div class="ch-head" onclick="tog('p4')"><div class="ch-left"><span class="ch-ico">🎲</span><span class="ch-name">Probabilités</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=-d3fE8d0YOc" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/-d3fE8d0YOc/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Introduction probabilités</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=YPbEHxuMaeQ" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/YPbEHxuMaeQ/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Probabilités — méthodes</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=YPbEHxuMaeQ" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/YPbEHxuMaeQ/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices probabilités</div></a>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ========== TERMINALE ========== -->
+    <section class="chapitres" id="terminale">
+      <div class="back" onclick="goBack()">← Retour aux niveaux</div>
+      <h2>Chapitres de Terminale</h2>
+
+      <div class="ch" id="t1">
+        <div class="ch-head" onclick="tog('t1')"><div class="ch-left"><span class="ch-ico">⚡</span><span class="ch-name">Limites</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=YPwJyYDsmxM" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/YPwJyYDsmxM/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Limites de fonctions — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=MJv7_pkFcdA" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/MJv7_pkFcdA/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Limites de suites</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=9SSEUoyHh2s" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/9SSEUoyHh2s/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Continuité et TVI</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="t2">
+        <div class="ch-head" onclick="tog('t2')"><div class="ch-left"><span class="ch-ico">∫</span><span class="ch-name">Intégration</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=bQ-eS1zZCdw" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/bQ-eS1zZCdw/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Les primitives — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=pFKzXZrMVxs" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/pFKzXZrMVxs/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Intégration — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=uVMRZSmYcQE" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/uVMRZSmYcQE/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Calculer une intégrale</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="t3">
+        <div class="ch-head" onclick="tog('t3')"><div class="ch-left"><span class="ch-ico">🎯</span><span class="ch-name">Probabilités avancées</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=YPbEHxuMaeQ" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/YPbEHxuMaeQ/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Loi binomiale</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=YPbEHxuMaeQ" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/YPbEHxuMaeQ/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Loi normale</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=_ZzxgjAxrt4" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/_ZzxgjAxrt4/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Exercices probabilités</div></a>
+        </div></div>
+      </div>
+
+      <div class="ch" id="t4">
+        <div class="ch-head" onclick="tog('t4')"><div class="ch-left"><span class="ch-ico">🔢</span><span class="ch-name">Logarithme &amp; Exponentielle</span></div><span class="ch-arrow">▾</span></div>
+        <div class="ch-videos"><div class="vgrid">
+          <a class="vcard" href="https://www.youtube.com/watch?v=aD03wqgxexk" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/aD03wqgxexk/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Fonction exponentielle — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=VJns0RfVWGg" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/VJns0RfVWGg/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Logarithme népérien — cours</div></a>
+          <a class="vcard" href="https://www.youtube.com/watch?v=yiQ4Z5FdFQ8" target="_blank"><div class="vthumb"><img src="https://img.youtube.com/vi/yiQ4Z5FdFQ8/mqdefault.jpg" alt=""/><div class="vplay"><div class="vpicon">▶</div></div></div><div class="vlabel">Dériver des fonctions log</div></a>
+        </div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const users = {};
+  let currentUser = null;
+
+  function fade(h, s, flex) {
+    const he = document.getElementById(h);
+    he.style.transition = 'opacity .4s'; he.style.opacity = '0';
+    setTimeout(() => {
+      he.style.display = 'none';
+      const se = document.getElementById(s);
+      se.style.display = flex ? 'flex' : 'block';
+      se.style.opacity = '0'; se.style.transition = 'opacity .4s';
+      requestAnimationFrame(() => se.style.opacity = '1');
+    }, 400);
+  }
+
+  function showAuth(tab) { fade('introPage','authPage',true); setTimeout(()=>switchTab(tab),450); }
+
+  function switchTab(t) {
+    document.getElementById('tabLogin').classList.toggle('active', t==='login');
+    document.getElementById('tabSignup').classList.toggle('active', t==='signup');
+    document.getElementById('formLogin').classList.toggle('active', t==='login');
+    document.getElementById('formSignup').classList.toggle('active', t==='signup');
+    document.getElementById('lMsg').textContent='';
+    document.getElementById('sMsg').textContent='';
+  }
+
+  function setMsg(id, txt, type) {
+    const el=document.getElementById(id); el.textContent=txt; el.className='amsg '+type;
+  }
+
+  function doSignup() {
+    const p=document.getElementById('sPrenom').value.trim();
+    const n=document.getElementById('sNom').value.trim();
+    const e=document.getElementById('sEmail').value.trim().toLowerCase();
+    const niv=document.getElementById('sNiveau').value;
+    const pw=document.getElementById('sPass').value;
+    if(!p||!n) return setMsg('sMsg','Prénom et nom requis.','err');
+    if(!e||!e.includes('@')) return setMsg('sMsg','E-mail invalide.','err');
+    if(!niv) return setMsg('sMsg','Choisis ton niveau.','err');
+    if(pw.length<6) return setMsg('sMsg','Mot de passe trop court (6 min).','err');
+    if(users[e]) return setMsg('sMsg','Compte déjà existant.','err');
+    users[e]={prenom:p,nom:n,email:e,niveau:niv,pass:pw};
+    setMsg('sMsg','✓ Compte créé ! Connexion en cours…','ok');
+    setTimeout(()=>loginAs(users[e]),1000);
+  }
+
+  function doLogin() {
+    const e=document.getElementById('lEmail').value.trim().toLowerCase();
+    const pw=document.getElementById('lPass').value;
+    if(!e||!pw) return setMsg('lMsg','Remplis tous les champs.','err');
+    const u=users[e];
+    if(!u||u.pass!==pw) return setMsg('lMsg','E-mail ou mot de passe incorrect.','err');
+    setMsg('lMsg','✓ Connexion réussie !','ok');
+    setTimeout(()=>loginAs(u),700);
+  }
+
+  function loginAs(u) {
+    currentUser=u;
+    document.getElementById('uAvatar').textContent=u.prenom[0].toUpperCase();
+    document.getElementById('uName').textContent=u.prenom+' · '+u.niveau;
+    fade('authPage','site',false);
+  }
+
+  function doLogout() { currentUser=null; fade('site','introPage',false); }
+
+  function showLevel(lv) {
+    document.getElementById('cards').style.display='none';
+    const t={seconde:'Chapitres de <span>Seconde</span>',premiere:'Chapitres de <span>Première</span>',terminale:'Chapitres de <span>Terminale</span>'};
+    document.getElementById('mainTitle').innerHTML=t[lv];
+    document.querySelectorAll('.chapitres').forEach(s=>s.style.display='none');
+    document.getElementById(lv).style.display='block';
+  }
+
+  function goBack() {
+    document.getElementById('cards').style.display='grid';
+    document.getElementById('mainTitle').innerHTML='Choisissez votre <span>niveau</span>';
+    document.querySelectorAll('.chapitres').forEach(s=>s.style.display='none');
+  }
+
+  function tog(id) { document.getElementById(id).classList.toggle('open'); }
+</script>
+</body>
+</html>
